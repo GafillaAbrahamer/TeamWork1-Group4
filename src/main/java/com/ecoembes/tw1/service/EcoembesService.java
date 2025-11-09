@@ -114,7 +114,12 @@ public class EcoembesService {
         requireAuth(token);
         return plants.values().stream()
                 .sorted(java.util.Comparator.comparingInt(Plant::getId))
-                .map(p -> java.util.Map.of("id", p.getId(), "name", p.getName()))
+                .map(p -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id", p.getId());
+                    m.put("name", p.getName());
+                    return m;
+                })
                 .collect(java.util.stream.Collectors.toList());
     }
 
