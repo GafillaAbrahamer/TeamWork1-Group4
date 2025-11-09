@@ -8,30 +8,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/plants")
-@Tag(name = "Plants")
+@RestController @RequestMapping("/plants") @Tag(name="Plants")
 public class PlantsController {
-    private final EcoembesService service;
-    public PlantsController(EcoembesService service) { this.service = service; }
+  private final EcoembesService service;
+  public PlantsController(EcoembesService s){ this.service=s; }
 
-    @GetMapping
-    @Operation(summary = "List plants")
-    public ResponseEntity<List<Map<String, Object>>> list(@RequestHeader("X-Token") String token) {
-        return ResponseEntity.ok(service.listPlants(token));
-    }
+  @GetMapping @Operation(summary="List plants")
+  public ResponseEntity<List<Map<String,Object>>> list(@RequestHeader("X-Token") String token){
+    return ResponseEntity.ok(service.listPlants(token));
+  }
 
-    @GetMapping("/{id}/capacity")
-    @Operation(summary = "Check capacity of a plant for a date")
-    public ResponseEntity<PlantCapacityResponse> capacity(
-            @RequestHeader("X-Token") String token,
-            @PathVariable int id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(service.capacity(token, id, date));
-    }
+  @GetMapping("/{id}/capacity") @Operation(summary="Check capacity of a plant for a date")
+  public ResponseEntity<PlantCapacityResponse> capacity(@RequestHeader("X-Token") String token, @PathVariable int id,
+      @RequestParam @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate date){
+    return ResponseEntity.ok(service.capacity(token, id, date));
+  }
 }

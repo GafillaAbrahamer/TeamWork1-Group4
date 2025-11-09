@@ -16,19 +16,15 @@ import java.util.stream.Collectors;
 @Service
 public class EcoembesService {
 
-    // In-memory "state"
     private final Map<String, Employee> tokens = new ConcurrentHashMap<>();
     private final Map<Integer, Dumpster> dumpsters = new ConcurrentHashMap<>();
     private final Map<Integer, Plant> plants = new ConcurrentHashMap<>();
-    private final Map<Integer, Map<LocalDate, Integer>> plantCapacity = new ConcurrentHashMap<>(); // tons per date
+    private final Map<Integer, Map<LocalDate, Integer>> plantCapacity = new ConcurrentHashMap<>();
     private final List<Assignment> assignments = Collections.synchronizedList(new ArrayList<>());
-
     private final AtomicInteger assignmentSeq = new AtomicInteger(1000);
 
     public EcoembesService() {
-        // Seed employees for demo (email->employee)
         seedPlantsAndCapacity();
-        // Seed a few dumpsters
         dumpsters.put(1, new Dumpster(1, "C/ Mayor 1, Bilbao", 48001, 120));
         dumpsters.put(2, new Dumpster(2, "C/ Gran Vía 10, Bilbao", 48002, 140));
         dumpsters.put(3, new Dumpster(3, "C/ Somera 3, Bilbao", 48005, 100));
@@ -37,26 +33,22 @@ public class EcoembesService {
     private void seedPlantsAndCapacity() {
         plants.put(1, new Plant(1, "PlasSB Ltd."));
         plants.put(2, new Plant(2, "ContSocket Ltd."));
-        // capacities for next 15 days
         LocalDate start = LocalDate.now();
         Random r = new Random(42);
         for (int pid : plants.keySet()) {
             Map<LocalDate, Integer> map = new HashMap<>();
             for (int i = 0; i < 15; i++) {
                 LocalDate d = start.plusDays(i);
-                map.put(d, 50 + r.nextInt(51)); // 50-100 tons
+                map.put(d, 50 + r.nextInt(51));
             }
             plantCapacity.put(pid, map);
         }
     }
 
-    // --- Auth ---
     public LoginResponse login(LoginRequest req) {
         if (req == null || req.email == null || req.email.isBlank() || req.password == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Email and password required");
         }
-        // Fake validate; any password accepted
-        // Create employee from email prefix
         String name = req.email.contains("@") ? req.email.substring(0, req.email.indexOf("@")) : req.email;
         Employee emp = new Employee(name.hashCode() & 0x7fffffff, capitalize(name), req.email);
         String token = String.valueOf(System.currentTimeMillis());
@@ -81,7 +73,6 @@ public class EcoembesService {
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
-    // --- Dumpsters ---
     public Dumpster createDumpster(String token, CreateDumpsterRequest req) {
         requireAuth(token);
         if (dumpsters.containsKey(req.id)) {
@@ -119,13 +110,12 @@ public class EcoembesService {
         return resp;
     }
 
-    // --- Plants ---
-    public List<Map<String, Object>> listPlants(String token) {
+    public java.util.List<java.util.Map<String, Object>> listPlants(String token) {
         requireAuth(token);
         return plants.values().stream()
-                .sorted(Comparator.comparingInt(Plant::getId))
-                .map(p -> Map.of("id", p.getId(), "name", p.getName()))
-                .collect(Collectors.toList());
+                .sorted(java.util.Comparator.comparingInt(Plant::getId))
+                .map(p -> java.util.Map.of("id", p.getId(), "name", p.getName()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public PlantCapacityResponse capacity(String token, int plantId, LocalDate date) {
@@ -133,7 +123,7 @@ public class EcoembesService {
         if (!plants.containsKey(plantId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Plant not found");
         }
-        Integer cap = plantCapacity.getOrDefault(plantId, Map.of()).get(date);
+        Integer cap = plantCapacity.getOrDefault(plantId, java.util.Map.of()).get(date);
         if (cap == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Capacity not available for requested date");
         }
@@ -144,18 +134,13 @@ public class EcoembesService {
         return r;
     }
 
-    // --- Assignments ---
     public AssignmentResponse assign(String token, CreateAssignmentRequest req) {
         Employee emp = requireAuth(token);
         if (!plants.containsKey(req.plantId)) throw new ApiException(HttpStatus.NOT_FOUND, "Plant not found");
-        List<Dumpster> ds = req.dumpsterIds.stream()
-                .map(dumpsters::get)
-                .filter(Objects::nonNull)
-                .toList();
+        java.util.List<Dumpster> ds = req.dumpsterIds.stream().map(dumpsters::get).filter(java.util.Objects::nonNull).toList();
         if (ds.isEmpty()) throw new ApiException(HttpStatus.BAD_REQUEST, "No valid dumpsters provided");
 
         int total = ds.stream().mapToInt(Dumpster::getContainersEstimate).sum();
-        // "Check" capacity (toy rule: 1 ton per 10 containers)
         int neededTons = (int) Math.ceil(total / 10.0);
         PlantCapacityResponse cap = capacity(token, req.plantId, req.date);
         if (neededTons > cap.capacityTons) {

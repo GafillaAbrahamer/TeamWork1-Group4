@@ -9,17 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/assignments")
-@Tag(name = "Assignments")
+@RestController @RequestMapping("/assignments") @Tag(name="Assignments")
 public class AssignmentsController {
-    private final EcoembesService service;
-    public AssignmentsController(EcoembesService service) { this.service = service; }
+  private final EcoembesService service;
+  public AssignmentsController(EcoembesService s){ this.service=s; }
 
-    @PostMapping
-    @Operation(summary = "Assign dumpsters to plants and notify the plant, auditing the employee")
-    public ResponseEntity<AssignmentResponse> assign(@RequestHeader("X-Token") String token,
-                                                     @RequestBody CreateAssignmentRequest req) {
-        return ResponseEntity.ok(service.assign(token, req));
-    }
+  @PostMapping @Operation(summary="Assign dumpsters to plants and notify the plant, auditing the employee")
+  public ResponseEntity<AssignmentResponse> assign(@RequestHeader("X-Token") String token, @RequestBody CreateAssignmentRequest req){
+    return ResponseEntity.ok(service.assign(token, req));
+  }
 }

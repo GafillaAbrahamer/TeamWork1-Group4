@@ -1,11 +1,9 @@
 
 server:
   port: 8080
-
 spring:
   application:
     name: ecoembes-tw1
-
 logging:
   level:
     root: INFO
